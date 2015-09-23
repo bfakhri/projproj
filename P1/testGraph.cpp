@@ -23,6 +23,14 @@ void readData(int yearMax);
 
 int main(int argc, char const *argv[]) {
 	graph G(NUM_OF_CELLS);
+	
+
+	#ifdef PARALLEL
+    printf("Number of Threads = %d\n", omp_get_num_threads());
+	omp_set_num_threads(omp_get_num_procs()*3/2); 
+    printf("Number of Processors = %d\n", omp_get_num_procs());
+    printf("Number of Threads = %d\n", omp_get_num_threads());
+    #endif
 
 	printf("reading data\n");
 	FILE *fp;
@@ -69,8 +77,8 @@ int main(int argc, char const *argv[]) {
 
 	fread(averages, sizeof(float), NUM_OF_CELLS, avgOut); 
 
-	for(int i=0; i<NUM_OF_CELLS; i++)
-		printf("%d = %f\n", i, averages[i]);
+	//for(int i=0; i<NUM_OF_CELLS; i++)
+	//	printf("%d = %f\n", i, averages[i]);
 
 	// Calculations start here
 
@@ -84,7 +92,11 @@ int main(int argc, char const *argv[]) {
 	for (int i = 0; i < NUM_OF_CELLS; ++i) 
 	{
 		if(omp_get_thread_num() == 0)
-			printf("Progress: %d/%d\n", i, NUM_OF_CELLS/4);
+			#ifdef PARALLEL
+			printf("Progress: %d/%d\n", i, NUM_OF_CELLS/omp_get_num_threads());
+			#else
+			printf("Progress: %d/%d\n", i, NUM_OF_CELLS);	
+			#endif
 
 		for (int j = i + 1; j < NUM_OF_CELLS; ++j) 
 		{ 
@@ -150,11 +162,8 @@ void readData(int yearMax)
 }
 
 
-float getCorrelation(int xpos, int ypos) {
-	float xmean = 0;
-	float ymean = 0;
-
-
+float getCorrelation(int xpos, int ypos) 
+{
 	float X[NUM_OF_WEEKS];
 	float Y[NUM_OF_WEEKS];
 
@@ -169,8 +178,8 @@ float getCorrelation(int xpos, int ypos) {
 		}
 	}
 
-	xmean = averages[xpos];
-	ymean = averages[ypos];	
+	float xmean = averages[xpos];
+	float ymean = averages[ypos];	
 
 	// Sxx, Syy
 	float Sxx = 0, Syy = 0, Sxy = 0;
