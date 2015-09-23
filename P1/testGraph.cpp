@@ -162,8 +162,11 @@ void readData(int yearMax)
 }
 
 
-float getCorrelation(int xpos, int ypos) 
-{
+float getCorrelation(int xpos, int ypos) {
+	float xmean = 0;
+	float ymean = 0;
+
+
 	float X[NUM_OF_WEEKS];
 	float Y[NUM_OF_WEEKS];
 
@@ -175,11 +178,13 @@ float getCorrelation(int xpos, int ypos)
 			X[j*52 + i] = Data[j][i][xpos];
 			Y[j*52 + i] = Data[j][i][ypos];
 
+			xmean += X[j*52 + i];
+			ymean += Y[j*52 + i];
 		}
 	}
 
-	float xmean = averages[xpos];
-	float ymean = averages[ypos];	
+ 	xmean /= (YEAR_MAX - 1990 + 1) * 52;
+ 	ymean /= (YEAR_MAX - 1990 + 1) * 52;
 
 	// Sxx, Syy
 	float Sxx = 0, Syy = 0, Sxy = 0;
